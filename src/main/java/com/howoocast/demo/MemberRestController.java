@@ -1,5 +1,9 @@
 package com.howoocast.demo;
 
+import com.howoocast.demo.exception.DataNotFoundException;
+import com.howoocast.demo.exception.EmptyValueException;
+import com.howoocast.demo.exception.UniqueViolationException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,36 +27,49 @@ public class MemberRestController {
 
 	@GetMapping("/api/member/{id}")
 	public ResponseEntity<?> get(@PathVariable String id) {
-		return new ResponseEntity<>(memberService.findById(id), HttpStatus.OK);
+		try {
+			return new ResponseEntity<>(memberService.findById(id), HttpStatus.OK);
+		} catch (DataNotFoundException e) {
+			return e.getResponse();
+		} catch (EmptyValueException e) {
+			return e.getResponse();
+		}
 	}
 
 	@PostMapping("/api/member")
 	public ResponseEntity<?> post(Member member) {
-		boolean result = memberService.create(member);
-
-		if (result) {
+		try {
+			memberService.create(member);
 			return new ResponseEntity<>(HttpStatus.CREATED);
+		} catch (UniqueViolationException e) {
+			return e.getResponse();
+		} catch (EmptyValueException e) {
+			return e.getResponse();
 		}
-		return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-		
 	}
 
 	@PatchMapping("/api/member")
 	public ResponseEntity<?> patch(Member member) {
-		boolean result = memberService.update(member);
-		if (result) {
+		try {
+			memberService.update(member);
 			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (DataNotFoundException e) {
+			return e.getResponse();
+		} catch (EmptyValueException e) {
+			return e.getResponse();
 		}
-		return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 	}
 
 	@DeleteMapping("/api/member")
 	public ResponseEntity<?> delete(@RequestParam String id) {
-		boolean result = memberService.delete(id);
-		if (result) {
+		try {
+			memberService.delete(id);
 			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (DataNotFoundException e) {
+			return e.getResponse();
+		} catch (EmptyValueException e) {
+			return e.getResponse();
 		}
-		return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 	}
 
 }

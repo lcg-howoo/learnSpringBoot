@@ -2,7 +2,9 @@ package com.howoocast.demo;
 
 import java.util.List;
 
+import com.howoocast.demo.exception.DataNotFoundException;
 import com.howoocast.demo.exception.EmptyValueException;
+import com.howoocast.demo.exception.UniqueViolationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,69 +15,59 @@ public class MemberService {
 	@Autowired
 	private MemberDAO memberDAO;
 
-	public boolean create(Member member) {
-		if (isInvalid(member.getId())) {
-			return false;
-		}
-		if (isInvalid(member.getName())) {
-			return false;
-		}
+	public void create(Member member) throws EmptyValueException, UniqueViolationException {
+		isInvalid(member.getId());
+		isInvalid(member.getName());
+		isInvalid(member.getPassword());
+		isInvalid(member.getPhone());
 
-		if (isInvalid(member.getPassword())) {
-			return false;
-		}
-		if (isInvalid(member.getPhone())) {
-			return false;
+		List<Member> memberList = this.findAll();
+
+		for (int i = 0; i < memberList.size(); i++) {
+			if (memberList.get(i).getId().equals(member.getId())) {
+				throw new UniqueViolationException();
+			}
 		}
 
 		memberDAO.create(member);
-		return true;
 	}
 
-	public Member findById(String id) {
+	public Member findById(String id) throws EmptyValueException, DataNotFoundException {
 
-		if (isInvalid(id)) {
-			return null;
+		isInvalid(id);
+		Member member = memberDAO.findById(id);
+		if (member == null) {
+			throw new DataNotFoundException();
 		}
-		return memberDAO.findById(id);
+		return member;
 	}
 
 	public List<Member> findAll() {
 		return memberDAO.findAll();
 	}
 
-	public boolean update(Member member) {
-		if (isInvalid(member.getId())) {
-			return false;
-		}
-		if (isInvalid(member.getName())) {
-			return false;
-		}
+	public void update(Member member) throws EmptyValueException, DataNotFoundException {
+		isInvalid(member.getId());
+		isInvalid(member.getName());
+		isInvalid(member.getPassword());
+		isInvalid(member.getPhone());
 
-		if (isInvalid(member.getPassword())) {
-			return false;
+		if (memberDAO.update(member) == false) {
+			throw new DataNotFoundException();
 		}
-		if (isInvalid(member.getPhone())) {
-			return false;
-		}
-
-		memberDAO.update(member);
-		return true;
 	}
 
-	public boolean delete(String id) {
-		if (isInvalid(id)) {
-			return false;
+	public void delete(String id) throws EmptyValueException, DataNotFoundException {
+		isInvalid(id);
+		if (memberDAO.delete(id) == false) {
+			throw new DataNotFoundException();
 		}
-		memberDAO.delete(id);
-		return true;
 	}
 
-	private boolean isInvalid(String value) {
-		if(value == null || value.trim().isEmpty()){
+	private void isInvalid(String value) throws EmptyValueException {
+		if (value == null || value.trim().isEmpty()) {
 			throw new EmptyValueException();
 		}
-		return value == null || value.trim().isEmpty();
 	}
 
 }

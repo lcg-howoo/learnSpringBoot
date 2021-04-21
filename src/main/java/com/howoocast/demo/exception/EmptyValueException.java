@@ -1,20 +1,12 @@
 package com.howoocast.demo.exception;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestController;
-
-@ControllerAdvice
-@RestController
-public class EmptyValueException extends RuntimeException {
-    @ExceptionHandler(value = Exception.class)
-    public Map<String, String> EmptyValueException(Exception e) {
-        Map<String, String> map = new HashMap<>();
-        map.put("EmptyValueException message", e.getMessage());
-        return map;
-    }
+public class EmptyValueException extends NullPointerException {
+	
+	public ResponseEntity<String> getResponse() {
+		return new ResponseEntity<>("비정상적인 입력값입니다.", HttpStatus.FORBIDDEN);
+	}
 
 }

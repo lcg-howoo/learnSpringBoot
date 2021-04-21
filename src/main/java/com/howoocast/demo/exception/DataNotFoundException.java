@@ -1,19 +1,11 @@
 package com.howoocast.demo.exception;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestController;
+public class DataNotFoundException extends NullPointerException {
 
-@ControllerAdvice
-@RestController
-public class DataNotFoundException extends RuntimeException {
-    @ExceptionHandler(value = Exception.class)
-    public Map<String, String> DataNotFoundException(Exception e) {
-        Map<String, String> map = new HashMap<>();
-        map.put("DataNotFoundException message", e.getMessage());
-        return map;
-    }
+	public ResponseEntity<String> getResponse() {
+		return new ResponseEntity<>("해당 아이디의 데이터를 찾을 수 없습니다.", HttpStatus.FORBIDDEN);
+	}
 }
