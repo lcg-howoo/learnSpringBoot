@@ -1,7 +1,13 @@
 package com.howoocast.demo;
 
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import com.howoocast.demo.exception.DataNotFoundException;
 import com.howoocast.demo.exception.EmptyValueException;
+import com.howoocast.demo.exception.WrongPassowrdException;
 import com.howoocast.demo.exception.UniqueViolationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +50,7 @@ public class MemberRestController {
 		} catch (UniqueViolationException e) {
 			return e.getResponse();
 		} catch (EmptyValueException e) {
+			
 			return e.getResponse();
 		}
 	}
@@ -72,4 +79,31 @@ public class MemberRestController {
 		}
 	}
 
+	@PostMapping("/api/login")
+	public ResponseEntity<?> login(Member member, HttpSession session, HttpServletRequest request, HttpServletResponse response){
+		try {
+			// id가 있으면
+			memberService.login(member);
+			session = request.getSession(true); //세션을 추가했다.
+			session.setAttribute("sessionId", member.getId());
+			System.out.println(session.getAttribute("sessionId"));
+			return new ResponseEntity<>("로그인 완료", HttpStatus.OK);
+		} catch (DataNotFoundException e) {
+			return e.getResponse();
+		} catch (EmptyValueException e) {
+			return e.getResponse();
+		}catch (WrongPassowrdException e){
+			return e.getResponse();
+		}
+	}
+	// @GetMapping("/api/member/{id}")
+	// public ResponseEntity<?> getUserInfo(@PathVariable String id) {
+	// 	try {
+	// 		return new ResponseEntity<>(memberService.findById(id), HttpStatus.OK);
+	// 	} catch (DataNotFoundException e) {
+	// 		return e.getResponse();
+	// 	} catch (EmptyValueException e) {
+	// 		return e.getResponse();
+	// 	}
+	// }
 }

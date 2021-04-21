@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.howoocast.demo.exception.DataNotFoundException;
 import com.howoocast.demo.exception.EmptyValueException;
+import com.howoocast.demo.exception.WrongPassowrdException;
 import com.howoocast.demo.exception.UniqueViolationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,6 @@ public class MemberService {
 				throw new UniqueViolationException();
 			}
 		}
-
 		memberDAO.create(member);
 	}
 
@@ -64,10 +64,18 @@ public class MemberService {
 		}
 	}
 
+	public void login(Member member) throws WrongPassowrdException{
+		// 비밀번호 일치 여부 확인 틀릴 경우 wrongPasswordException으로 예외를 던져준다.
+		if(this.findById(member.getId()).getPassword().equals(member.getPassword()) == false){
+			throw new WrongPassowrdException();
+		}
+	}
+
 	private void isInvalid(String value) throws EmptyValueException {
 		if (value == null || value.trim().isEmpty()) {
 			throw new EmptyValueException();
 		}
 	}
+	
 
 }
