@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DataSource {
-	
+
 	public static final List<Member> data;
 
 	static {

@@ -8,7 +8,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class Member {
-	
 	private String id;
 	private String password;
 	private String name;
