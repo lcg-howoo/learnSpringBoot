@@ -1,12 +1,9 @@
 package com.howoocast.demo;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.howoocast.demo.exception.DataNotFoundException;
 import com.howoocast.demo.exception.EmptyValueException;
-import com.howoocast.demo.exception.LogoutException;
 import com.howoocast.demo.exception.WrongPassowrdException;
 import com.howoocast.demo.exception.WrongSessionException;
 import com.howoocast.demo.exception.WrongLoginException;
@@ -29,6 +26,8 @@ public class MemberRestController {
 	@Autowired
 	private MemberService memberService;
 
+	private static final String Key_SESSION_ID = "sessionId";
+
 	@GetMapping("/api/member")
 	public ResponseEntity<?> getList() {
 		return new ResponseEntity<>(memberService.findAll(), HttpStatus.OK);
@@ -47,14 +46,32 @@ public class MemberRestController {
 
 	@PostMapping("/api/member")
 	public ResponseEntity<?> post(Member member, HttpSession session) {
+		// try {
+		// 	this.getLoginMember(session);
+		// 	throw new LogoutException();
+
+		// } catch (UniqueViolationException e) {
+		// 	return e.getResponse();
+		// } catch (EmptyValueException e) {
+		// 	return e.getResponse();
+		// } catch (LogoutException e) {
+		// 	return e.getResponse();
+		// } catch (WrongAccessException e) {
+		// 	memberService.create(member);
+		// 	return new ResponseEntity<>(HttpStatus.CREATED);
+		// }
+
 		try {
-			memberService.create(member, session);
-			return new ResponseEntity<>(HttpStatus.CREATED);
+			if (session.getAttribute(Key_SESSION_ID) == null) {
+				memberService.create(member);
+				return new ResponseEntity<>(HttpStatus.CREATED);
+			}
+			throw new WrongAccessException("로그아웃이 필요합니다.");
 		} catch (UniqueViolationException e) {
 			return e.getResponse();
 		} catch (EmptyValueException e) {
 			return e.getResponse();
-		} catch (LogoutException e) {
+		} catch (WrongAccessException e) {
 			return e.getResponse();
 		}
 	}
@@ -62,8 +79,13 @@ public class MemberRestController {
 	@PatchMapping("/api/member")
 	public ResponseEntity<?> patch(Member member, HttpSession session) {
 		try {
-			memberService.update(member, session);
-			return new ResponseEntity<>("업데이트가 완료 됐습니다", HttpStatus.OK);
+			Member loginMember = this.getLoginMember(session);
+			if (loginMember.getId().equals(member.getId())) {
+				memberService.update(member);
+				return new ResponseEntity<>("업데이트가 완료 됐습니다", HttpStatus.OK);
+			}
+
+			throw new WrongAccessException();
 		} catch (DataNotFoundException e) {
 			return e.getResponse();
 		} catch (EmptyValueException e) {
@@ -76,8 +98,12 @@ public class MemberRestController {
 	@DeleteMapping("/api/member")
 	public ResponseEntity<?> delete(@RequestParam String id, HttpSession session) {
 		try {
-			memberService.delete(id, session);
-			return new ResponseEntity<>("삭제가 완료 됐습니다.", HttpStatus.OK);
+			Member loginMember = this.getLoginMember(session);
+			if (loginMember.getId().equals(id)) {
+				memberService.delete(id);
+				return new ResponseEntity<>("삭제가 완료 됐습니다.", HttpStatus.OK);
+			}
+			throw new WrongAccessException();
 		} catch (DataNotFoundException e) {
 			return e.getResponse();
 		} catch (EmptyValueException e) {
@@ -88,12 +114,14 @@ public class MemberRestController {
 	}
 
 	@PostMapping("/api/login")
-	public ResponseEntity<?> login(Member member, HttpSession session, HttpServletRequest request,
-			HttpServletResponse response) {
+	public ResponseEntity<?> login(Member member, HttpSession session) {
 		try {
-			memberService.login(member, session);
-			session.setAttribute("sessionId", member);
-			session = request.getSession(true);
+			if (session.getAttribute(Key_SESSION_ID) != null) {
+				throw new WrongLoginException();
+			}
+
+			Member loginMember = memberService.login(member.getId(), member.getPassword());
+			session.setAttribute(Key_SESSION_ID, loginMember);
 			return new ResponseEntity<>("로그인 완료", HttpStatus.OK);
 		} catch (DataNotFoundException e) {
 			return e.getResponse();
@@ -110,8 +138,16 @@ public class MemberRestController {
 
 	@PostMapping("api/logout")
 	public ResponseEntity<?> logout(HttpSession session) {
-		session.removeAttribute("sessionId");
+		// TODO: 로그인도 안 했는데 감히 로그아웃을 해?
+		session.removeAttribute(Key_SESSION_ID);
 		return new ResponseEntity<>("로그아웃 완료", HttpStatus.OK);
+	}
+
+	private Member getLoginMember(HttpSession session) {
+		if (session.getAttribute(Key_SESSION_ID) != null) {
+			return (Member) session.getAttribute("sessionId");
+		}
+		throw new WrongAccessException();
 	}
 
 }
