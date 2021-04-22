@@ -67,7 +67,7 @@ public class MemberService { // validation check
 			isInvalid(member.getPassword());
 			isInvalid(member.getPhone());
 
-			if (memberDAO.update(user) == false) {
+			if (memberDAO.update(member) == false) {
 				throw new DataNotFoundException();
 			}
 		} else {
