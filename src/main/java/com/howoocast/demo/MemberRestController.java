@@ -30,13 +30,14 @@ public class MemberRestController {
 
 	@GetMapping("/api/member")
 	public ResponseEntity<?> getList() {
+
 		return new ResponseEntity<>(memberService.findAll(), HttpStatus.OK);
 	}
 
-	@GetMapping("/api/member/{id}")
-	public ResponseEntity<?> get(@PathVariable String id) {
+	@GetMapping("/api/member/{username}")
+	public ResponseEntity<?> get(@PathVariable String username) {
 		try {
-			return new ResponseEntity<>(memberService.findById(id), HttpStatus.OK);
+			return new ResponseEntity<>(memberService.findById(username), HttpStatus.OK);
 		} catch (DataNotFoundException e) {
 			return e.getResponse();
 		} catch (EmptyValueException e) {
@@ -80,7 +81,7 @@ public class MemberRestController {
 	public ResponseEntity<?> patch(Member member, HttpSession session) {
 		try {
 			Member loginMember = this.getLoginMember(session);
-			if (loginMember.getId().equals(member.getId())) {
+			if (loginMember.getUsername().equals(member.getUsername())) {
 				memberService.update(member);
 				return new ResponseEntity<>("업데이트가 완료 됐습니다", HttpStatus.OK);
 			}
@@ -96,11 +97,11 @@ public class MemberRestController {
 	}
 
 	@DeleteMapping("/api/member")
-	public ResponseEntity<?> delete(@RequestParam String id, HttpSession session) {
+	public ResponseEntity<?> delete(@RequestParam String username, HttpSession session) {
 		try {
 			Member loginMember = this.getLoginMember(session);
-			if (loginMember.getId().equals(id)) {
-				memberService.delete(id);
+			if (loginMember.getUsername().equals(username)) {
+				memberService.delete(username);
 				return new ResponseEntity<>("삭제가 완료 됐습니다.", HttpStatus.OK);
 			}
 			throw new WrongAccessException();
@@ -120,7 +121,7 @@ public class MemberRestController {
 				throw new WrongLoginException();
 			}
 
-			Member loginMember = memberService.login(member.getId(), member.getPassword());
+			Member loginMember = memberService.login(member.getUsername(), member.getPassword());
 			session.setAttribute(Key_SESSION_ID, loginMember);
 			return new ResponseEntity<>("로그인 완료", HttpStatus.OK);
 		} catch (DataNotFoundException e) {
