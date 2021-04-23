@@ -11,6 +11,7 @@ import javax.persistence.Table;
 
 import com.howoocast.demo.exception.EmptyValueException;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,7 +25,7 @@ public class Member implements Serializable {
 	// private static final long serialVersionUID = 1L;
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+	private Long id;
 	@Column(name = "username")
 	private String username;
 	@Column(name = "password")
@@ -34,7 +35,8 @@ public class Member implements Serializable {
 	@Column(name = "phone")
 	private String phone;
 
-	public Member(Integer id, String username, String password, String name, String phone) {
+	@Builder
+	public Member(Long id, String username, String password, String name, String phone) {
 		if (username == null || username.trim().isEmpty()) {
 			throw new EmptyValueException("아이디");
 		}

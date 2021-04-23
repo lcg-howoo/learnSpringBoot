@@ -1,5 +1,7 @@
 package com.howoocast.demo;
 
+import java.util.Optional;
+
 import javax.servlet.http.HttpSession;
 
 import com.howoocast.demo.exception.DataNotFoundException;
@@ -28,127 +30,134 @@ public class MemberRestController {
 
 	private static final String Key_SESSION_ID = "sessionId";
 
-	@GetMapping("/api/member")
-	public ResponseEntity<?> getList() {
-
-		return new ResponseEntity<>(memberService.findAll(), HttpStatus.OK);
+	@GetMapping("/api/member/{id}")
+	public ResponseEntity<Member> getMember(@PathVariable("id") Long id){
+		Optional<Member> member = memberService.findbyId(id);
+		return new ResponseEntity<Member>(member.get(), HttpStatus.OK);
 	}
 
-	@GetMapping("/api/member/{username}")
-	public ResponseEntity<?> get(@PathVariable String username) {
-		try {
-			return new ResponseEntity<>(memberService.findById(username), HttpStatus.OK);
-		} catch (DataNotFoundException e) {
-			return e.getResponse();
-		} catch (EmptyValueException e) {
-			return e.getResponse();
-		}
-	}
 
-	@PostMapping("/api/member")
-	public ResponseEntity<?> post(Member member, HttpSession session) {
-		// try {
-		// 	this.getLoginMember(session);
-		// 	throw new LogoutException();
+	// @GetMapping("/api/member")
+	// public ResponseEntity<?> getList() {
 
-		// } catch (UniqueViolationException e) {
-		// 	return e.getResponse();
-		// } catch (EmptyValueException e) {
-		// 	return e.getResponse();
-		// } catch (LogoutException e) {
-		// 	return e.getResponse();
-		// } catch (WrongAccessException e) {
-		// 	memberService.create(member);
-		// 	return new ResponseEntity<>(HttpStatus.CREATED);
-		// }
+	// 	return new ResponseEntity<>(memberService.findAll(), HttpStatus.OK);
+	// }
 
-		try {
-			if (session.getAttribute(Key_SESSION_ID) == null) {
-				memberService.create(member);
-				return new ResponseEntity<>(HttpStatus.CREATED);
-			}
-			throw new WrongAccessException("로그아웃이 필요합니다.");
-		} catch (UniqueViolationException e) {
-			return e.getResponse();
-		} catch (EmptyValueException e) {
-			return e.getResponse();
-		} catch (WrongAccessException e) {
-			return e.getResponse();
-		}
-	}
+	// @GetMapping("/api/member/{username}")
+	// public ResponseEntity<?> get(@PathVariable String username) {
+	// 	try {
+	// 		return new ResponseEntity<>(memberService.findById(username), HttpStatus.OK);
+	// 	} catch (DataNotFoundException e) {
+	// 		return e.getResponse();
+	// 	} catch (EmptyValueException e) {
+	// 		return e.getResponse();
+	// 	}
+	// }
 
-	@PatchMapping("/api/member")
-	public ResponseEntity<?> patch(Member member, HttpSession session) {
-		try {
-			Member loginMember = this.getLoginMember(session);
-			if (loginMember.getUsername().equals(member.getUsername())) {
-				memberService.update(member);
-				return new ResponseEntity<>("업데이트가 완료 됐습니다", HttpStatus.OK);
-			}
+	// @PostMapping("/api/member")
+	// public ResponseEntity<?> post(Member member, HttpSession session) {
+	// 	// try {
+	// 	// 	this.getLoginMember(session);
+	// 	// 	throw new LogoutException();
 
-			throw new WrongAccessException();
-		} catch (DataNotFoundException e) {
-			return e.getResponse();
-		} catch (EmptyValueException e) {
-			return e.getResponse();
-		} catch (WrongAccessException e) {
-			return e.getResponse();
-		}
-	}
+	// 	// } catch (UniqueViolationException e) {
+	// 	// 	return e.getResponse();
+	// 	// } catch (EmptyValueException e) {
+	// 	// 	return e.getResponse();
+	// 	// } catch (LogoutException e) {
+	// 	// 	return e.getResponse();
+	// 	// } catch (WrongAccessException e) {
+	// 	// 	memberService.create(member);
+	// 	// 	return new ResponseEntity<>(HttpStatus.CREATED);
+	// 	// }
 
-	@DeleteMapping("/api/member")
-	public ResponseEntity<?> delete(@RequestParam String username, HttpSession session) {
-		try {
-			Member loginMember = this.getLoginMember(session);
-			if (loginMember.getUsername().equals(username)) {
-				memberService.delete(username);
-				return new ResponseEntity<>("삭제가 완료 됐습니다.", HttpStatus.OK);
-			}
-			throw new WrongAccessException();
-		} catch (DataNotFoundException e) {
-			return e.getResponse();
-		} catch (EmptyValueException e) {
-			return e.getResponse();
-		} catch (WrongAccessException e) {
-			return e.getResponse();
-		}
-	}
+	// 	try {
+	// 		if (session.getAttribute(Key_SESSION_ID) == null) {
+	// 			memberService.create(member);
+	// 			return new ResponseEntity<>(HttpStatus.CREATED);
+	// 		}
+	// 		throw new WrongAccessException("로그아웃이 필요합니다.");
+	// 	} catch (UniqueViolationException e) {
+	// 		return e.getResponse();
+	// 	} catch (EmptyValueException e) {
+	// 		return e.getResponse();
+	// 	} catch (WrongAccessException e) {
+	// 		return e.getResponse();
+	// 	}
+	// }
 
-	@PostMapping("/api/login")
-	public ResponseEntity<?> login(Member member, HttpSession session) {
-		try {
-			if (session.getAttribute(Key_SESSION_ID) != null) {
-				throw new WrongLoginException();
-			}
+	// @PatchMapping("/api/member")
+	// public ResponseEntity<?> patch(Member member, HttpSession session) {
+	// 	try {
+	// 		Member loginMember = this.getLoginMember(session);
+	// 		if (loginMember.getUsername().equals(member.getUsername())) {
+	// 			memberService.update(member);
+	// 			return new ResponseEntity<>("업데이트가 완료 됐습니다", HttpStatus.OK);
+	// 		}
 
-			Member loginMember = memberService.login(member.getUsername(), member.getPassword());
-			session.setAttribute(Key_SESSION_ID, loginMember);
-			return new ResponseEntity<>("로그인 완료", HttpStatus.OK);
-		} catch (DataNotFoundException e) {
-			return e.getResponse();
-		} catch (EmptyValueException e) {
-			return e.getResponse();
-		} catch (WrongPassowrdException e) {
-			return e.getResponse();
-		} catch (WrongLoginException e) {
-			return e.getResponse();
-		} catch (WrongSessionException e) {
-			return e.getResponse();
-		}
-	}
+	// 		throw new WrongAccessException();
+	// 	} catch (DataNotFoundException e) {
+	// 		return e.getResponse();
+	// 	} catch (EmptyValueException e) {
+	// 		return e.getResponse();
+	// 	} catch (WrongAccessException e) {
+	// 		return e.getResponse();
+	// 	}
+	// }
 
-	@PostMapping("api/logout")
-	public ResponseEntity<?> logout(HttpSession session) {
-		// TODO: 로그인도 안 했는데 감히 로그아웃을 해?
-		session.removeAttribute(Key_SESSION_ID);
-		return new ResponseEntity<>("로그아웃 완료", HttpStatus.OK);
-	}
+	// @DeleteMapping("/api/member")
+	// public ResponseEntity<?> delete(@RequestParam String username, HttpSession session) {
+	// 	try {
+	// 		Member loginMember = this.getLoginMember(session);
+	// 		if (loginMember.getUsername().equals(username)) {
+	// 			memberService.delete(username);
+	// 			return new ResponseEntity<>("삭제가 완료 됐습니다.", HttpStatus.OK);
+	// 		}
+	// 		throw new WrongAccessException();
+	// 	} catch (DataNotFoundException e) {
+	// 		return e.getResponse();
+	// 	} catch (EmptyValueException e) {
+	// 		return e.getResponse();
+	// 	} catch (WrongAccessException e) {
+	// 		return e.getResponse();
+	// 	}
+	// }
 
-	private Member getLoginMember(HttpSession session) {
-		if (session.getAttribute(Key_SESSION_ID) != null) {
-			return (Member) session.getAttribute("sessionId");
-		}
-		throw new WrongAccessException();
-	}
+	// @PostMapping("/api/login")
+	// public ResponseEntity<?> login(Member member, HttpSession session) {
+	// 	try {
+	// 		if (session.getAttribute(Key_SESSION_ID) != null) {
+	// 			throw new WrongLoginException();
+	// 		}
+
+	// 		Member loginMember = memberService.login(member.getUsername(), member.getPassword());
+	// 		session.setAttribute(Key_SESSION_ID, loginMember);
+	// 		return new ResponseEntity<>("로그인 완료", HttpStatus.OK);
+	// 	} catch (DataNotFoundException e) {
+	// 		return e.getResponse();
+	// 	} catch (EmptyValueException e) {
+	// 		return e.getResponse();
+	// 	} catch (WrongPassowrdException e) {
+	// 		return e.getResponse();
+	// 	} catch (WrongLoginException e) {
+	// 		return e.getResponse();
+	// 	} catch (WrongSessionException e) {
+	// 		return e.getResponse();
+	// 	}
+	// }
+
+	// @PostMapping("api/logout")
+	// public ResponseEntity<?> logout(HttpSession session) {
+	// 	// TODO: 로그인도 안 했는데 감히 로그아웃을 해?
+	// 	session.removeAttribute(Key_SESSION_ID);
+	// 	return new ResponseEntity<>("로그아웃 완료", HttpStatus.OK);
+	// }
+
+	// private Member getLoginMember(HttpSession session) {
+	// 	if (session.getAttribute(Key_SESSION_ID) != null) {
+	// 		return (Member) session.getAttribute("sessionId");
+	// 	}
+	// 	throw new WrongAccessException();
+	// }
 
 }
