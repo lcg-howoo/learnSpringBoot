@@ -4,73 +4,63 @@ import java.util.List;
 import java.util.Optional;
 
 import com.howoocast.demo.exception.DataNotFoundException;
-import com.howoocast.demo.exception.EmptyValueException;
-import com.howoocast.demo.exception.WrongPassowrdException;
-import com.howoocast.demo.exception.UniqueViolationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class MemberService { // validation check
 
 	@Autowired
-	private MemberDAO memberDAO;
+	private MemberRepository memberRepository;
 
-	public Optional<Member> findbyId(Long id){
-		Optional<Member> member = memberDAO.findById(id);
-		return member;
+	public Page<Member> findByFilter(Member filter, Pageable pageable) {
+		if (filter.getUsername() == null) {
+			if (filter.getPhone() == null) {
+				return memberRepository.findAll(pageable);
+			} else {
+				return memberRepository.findByPhoneContaining(filter.getPhone(), pageable);
+			}
+		} else {
+			if (filter.getPhone() == null) {
+				return memberRepository.findByUsernameContaining(filter.getUsername(), pageable);
+			} else {
+				return memberRepository.findByUsernameContainingAndPhoneContaining(filter.getUsername(),
+						filter.getPhone(), pageable);
+			}
+		}
 	}
 
-	// public void create(Member member) {
-	// 	List<Member> memberList = this.findAll();
+	public Page<Member> findByUsername(String username, Pageable pageable) {
+		return memberRepository.findByUsernameContaining(username, pageable);
+	}
 
-	// 	for (int i = 0; i < memberList.size(); i++) {
-	// 		if (memberList.get(i).getId().equals(member.getId())) {
-	// 			throw new UniqueViolationException();
-	// 		}
-	// 	}
-	// 	memberDAO.create(member);
-	// }
+	public Member findById(Long id) throws Exception {
+		Optional<Member> member = memberRepository.findById(id);
+		if (member.isPresent()) {
+			return member.get();
+		}
+		throw new DataNotFoundException();
+	}
 
-	// public Member findById(String id) {
-	// 	isInvalidId(id);
-	// 	Member member = memberDAO.findById(id);
-	// 	if (member == null) {
-	// 		throw new DataNotFoundException();
-	// 	}
-	// 	return member;
-	// }
+	public void insert(Member member) {
+		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+		member.setPassword(passwordEncoder.encode(member.getPassword()));
+		memberRepository.save(member); // try update, however Id is null go to insert (upsert)
+	}
 
-	// public List<Member> findAll() {
-	// 	return memberDAO.findAll();
-	// }
+	public void update(Member member) {
+		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+		member.setPassword(passwordEncoder.encode(member.getPassword()));
+		memberRepository.save(member);
+	}
 
-	// public void update(Member member) {
+	public void delete(Long id) {
+		memberRepository.deleteById(id);
+	}
 
-	// 	if (memberDAO.update(member) == false) {
-	// 		throw new DataNotFoundException();
-	// 	}
-	// }
-
-	// public void delete(String id) {
-	// 	isInvalidId(id);
-	// 	if (memberDAO.delete(id) == false) {
-	// 		throw new DataNotFoundException();
-	// 	}
-	// }
-
-	// public Member login(String id, String rawPassword) {
-	// 	Member member = this.findById(id);
-	// 	if (member.getPassword().equals(rawPassword)) {
-	// 		return member;
-	// 	}
-	// 	throw new WrongPassowrdException();
-	// }
-
-	// private void isInvalidId(String id) {
-	// 	if (id == null || id.trim().isEmpty()) {
-	// 		throw new EmptyValueException("아이디");
-	// 	}
-	// }
 }

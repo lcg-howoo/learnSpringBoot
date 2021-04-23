@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import lombok.extern.slf4j.Slf4j;
 
-@RestControllerAdvice("com.howoocast.demo")
+@RestControllerAdvice("com.howoocast")
 @Slf4j
 public class ErrorRestController {
 

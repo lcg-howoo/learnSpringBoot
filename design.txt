@@ -1,0 +1,53 @@
+player = {
+	id: 1,
+	name: 'young',
+	level: 10,
+	dp: 100,
+	hp: 35,
+	mp: 20,
+	job: 'swordman'
+}
+
+item = {
+	id: 1,
+	name: 'red-potion'
+}
+item = {
+	id: 2,
+	name: 'blue-potion'
+}
+
+inventory = {
+	player-id: 1,
+	item-id: 1,
+}
+
+inventory = {
+	player-id: 1,
+	item-id: 1,
+}
+
+inventory = {
+	player-id: 1,
+	item-id: 1,
+}
+
+inventory = {
+	player-id: 1,
+	item-id: 1,
+}
+
+inventory = {
+	player-id: 1,
+	item-id: 1,
+}
+
+inventory = {
+	player-id: 1,
+	item-id: 2,
+}
+
+inventory = {
+	player-id: 1,
+	item-id: 2,
+}

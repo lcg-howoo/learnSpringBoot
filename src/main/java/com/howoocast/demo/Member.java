@@ -1,42 +1,40 @@
 package com.howoocast.demo;
 
-import java.io.Serializable;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Table;
 
 import com.howoocast.demo.exception.EmptyValueException;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "member")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Member implements Serializable {
-	// private static final long serialVersionUID = 1L;
+public class Member {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	@Column(name = "username")
+
+	@Column(length = 50, nullable = false, unique = true)
 	private String username;
-	@Column(name = "password")
+
+	@Column(length = 512, nullable = false)
 	private String password;
-	@Column(name = "name")
+
+	@Column(length = 50, nullable = false)
 	private String name;
-	@Column(name = "phone")
+
+	@Column(length = 16, nullable = false)
 	private String phone;
 
-	@Builder
-	public Member(Long id, String username, String password, String name, String phone) {
+	public Member(String username, String password, String name, String phone) {
 		if (username == null || username.trim().isEmpty()) {
 			throw new EmptyValueException("아이디");
 		}
@@ -49,7 +47,6 @@ public class Member implements Serializable {
 		if (phone == null || phone.trim().isEmpty()) {
 			throw new EmptyValueException("전화번호");
 		}
-		this.id = id;
 		this.username = username.trim();
 		this.password = password.trim();
 		this.name = name.trim();
